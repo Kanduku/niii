@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Video Generator</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .container { max-width: 600px; margin: 50px auto; text-align: center; }
+        input, button { padding: 10px; margin: 10px; width: 80%; }
+        #loading { display: none; }
+        #download-link { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>YouTube Video Generator</h1>
+    <input type="text" id="url" placeholder="Enter YouTube URL" />
+    <button onclick="generateVideo()">Generate Video</button>
+    <div id="loading">Generating video, please wait...</div>
+    <a id="download-link" href="#" download>Download Video</a>
+</div>
+
+<script>
+    function generateVideo() {
+        const url = document.getElementById('url').value;
+        if (!url) {
+            alert("Please enter a YouTube URL.");
+            return;
+        }
+
+        // Show loading message
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('download-link').style.display = 'none';
+
+        // Prepare request payload
+        const payload = { url: url };
+
+        // Make API request to backend Flask server
+        fetch('http://127.0.0.1:5000/generate-video', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('download-link').style.display = 'block';
+                document.getElementById('download-link').href = data.video_url;
+                document.getElementById('download-link').innerText = 'Download Video';
+            } else {
+                alert("Error: " + data.error);
+                document.getElementById('loading').style.display = 'none';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert("An error occurred while generating the video.");
+            document.getElementById('loading').style.display = 'none';
+        });
+    }
+</script>
+
+</body>
+</html>
