@@ -6,6 +6,8 @@ import librosa
 import numpy as np
 import cv2
 import time
+import subprocess
+import sys
 
 app = Flask(__name__)
 
@@ -13,6 +15,22 @@ app = Flask(__name__)
 GENERATED_VIDEO_DIR = './generated_videos'
 if not os.path.exists(GENERATED_VIDEO_DIR):
     os.makedirs(GENERATED_VIDEO_DIR)
+
+# Function to install MoviePy, librosa, and numpy
+def install_dependencies():
+    try:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "moviepy==1.0.3", "librosa==0.10.0", "numpy==1.26.4", "opencv-python==4.10.0.84"])
+    except subprocess.CalledProcessError as e:
+        print(f"Error installing dependencies: {e}")
+        sys.exit(1)
+
+# Install dependencies if not already installed
+try:
+    import moviepy.editor as mp
+    import librosa
+    import numpy as np
+except ImportError:
+    install_dependencies()
 
 @app.route('/generate-video', methods=['POST'])
 def generate_video():
@@ -54,14 +72,12 @@ def generate_video():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
 @app.route('/download/<filename>', methods=['GET'])
 def download_video(filename):
     try:
         return send_from_directory(GENERATED_VIDEO_DIR, filename)
     except Exception as e:
         return jsonify({"error": f"File not found: {filename}"}), 404
-
 
 if __name__ == '__main__':
     app.run(debug=True, host="0.0.0.0", port=5000)
